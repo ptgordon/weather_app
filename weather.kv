@@ -1,51 +1,73 @@
 #: import main main
 #: import ListAdapter kivy.adapters.listadapter.ListAdapter
 
-WeatherRoot:
+WeatherRoot:  ##Root widget. parent widget which breeds all others
 
-<CurrentWeather@BoxLayout>:
-	location: ""
-	conditions: None
-	temp: None
-	temp_min: None
-	temp_max: None
+<CurrentWeather>:  # A widget of the boxlayout type
 	orientation: "vertical"
+	BoxLayout:
+		Label:
+			text: "{} ({})".format(root.location[0], root.location[1]) # format text based on location
+			font_size: "30dp"
+		Label:
+			text: "[]".format(root.temp)
+			font_size: "30dp"
 	Label:
-		text: root.location
+		text: root.conditions
+	BoxLayout:
+		orientation: "horizontal"
+		Label:
+			text: "Low: {}".format(root.temp_min)
+		Label:
+			text: "High: {}".format(root.temp_max)
 	BoxLayout:
 		orientation: "horizontal"
 		size_hint_y: None
 		height: "40dp"
 		Button:
 			text: "Add Location"
-			on_press: app.root.show_add_location_form()
+			on_press: app.root.show_add_location_form() # goes back to add_locationform (see main)
 		Button:
 			text: "Forecast"
 
 <LocationButton>:
-	on_press: app.root.show_current_weather(self.text)
+	text: "{} ({})".format(self.location[0], self.location[1])  # the text is set from the value of the location property.
+	height: "40dp"
+	size_hint_y: None
+	on_press: app.root.show_current_weather(self.location)  # the argument passes the location property, rather than text.
 
 <WeatherRoot>:
 	AddLocationForm
 
-<AddLocationForm>:
+<AddLocationForm>:  # boxlayout specified in main.py
 	orientation: "vertical"
-	search_input: search_box
-	search_results: search_results_list
+	search_input: search_box # looks for search_box which happens to be in the TextInput property
+	search_results: search_results_list #search_results references the object in main.py
 	BoxLayout:
 		height: "40dp"
-		size_hint_y: None
+		size_hint_y: None  # must be none if height is specified
 		TextInput:
-			id: search_box
+			id: search_box  # this allows what is put into the TextInput box to be referenced.
 			size_hint_x: 50
+			focus: True
+			multiline: False
+			on_text_validate: root.search_location()
 		Button:
 			text: "Search"
 			size_hint_x: 25
-			on_press: root.search_location()
+			on_press: root.search_location()  # this guy takes you to the AddLocationForm class and performs the search_location method defined within it
 		Button:
 			text: "Current Location"
 			size_hint_x: 25
-	ListView:
-		id: search_results_list
+	ListView:   # this is the list portion of the add location form
+		id: search_results_list  # this list will be updated through the search_results object
 		adapter:
-			ListAdapter(data=[], cls=main.LocationButton)
+			ListAdapter(
+			data=[],
+			cls=main.LocationButton,
+			args_converter=root.args_converter)
+		Button:
+			height: "40dp"
+			size_hint_y: None
+			text: "Cancel"
+			on_press: app.root.show_current_weather(None)
