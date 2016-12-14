@@ -5,10 +5,7 @@ from kivy.properties import ObjectProperty, ListProperty, StringProperty, Numeri
 from kivy.network.urlrequest import UrlRequest
 from kivy.factory import Factory
 import json
-from pyowm import OWM
 
-API_key = 'e843980d57222bc2a38837d56f83d1cb'
-owm = OWM(API_key)
 
 class WeatherRoot(BoxLayout):   #root widget either add location or current weather will be referenced
 
@@ -35,15 +32,13 @@ class AddLocationForm(BoxLayout):  # BoxLayout specifies how it will be interact
 		return {'location': (city, country)}
 
 	def search_location(self):
-		obs_list = owm.weather_at_places(self.search_input.text, 'like')  #notice how it uses the the search_input ObjectProperty to fill in the blank
-
-		
-
-		cities = [(obs_list[d],]
+		search_template = "http://api.openweathermap.org/data/2.5/find?q={}&type=like&APPID=e843980d57222bc2a38837d56f83d1cb" # the {} in the URL is a placeholder for the user-s query the str. format is used in the next line to replace the value.
+		search_url = search_template.format(self.search_input.text)  #notice how it uses the the search_input ObjectProperty to fill in the blank
+		request = UrlRequest(search_url, self.found_location) # fetches data from the url then runs the found_location method
 
 	def found_location(self, request, data):  # the data passed by UrlRequest is a parsed dictionary of JSON code
 		data = json.loads(data.decode()) if not isinstance(data, dict) else data # checks if the json list is a dictionary and converts it to one if it isn't already
-		cities = [(d['name'], d['sys']['country'])  # this guy is taking the data from the json list and puting it into a new list of tuples called cities
+		cities = [(d['name'], d['sys']['country'])  # this guy is taking the data from the json list and puting it into a new list called cities
 			for d in data['list']]
 		self.search_results.item_strings = cities  # turns the list into an actual visible list in kivy
 		self.search_results.adapter.data.clear()  # first clear the list
